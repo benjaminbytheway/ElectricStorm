@@ -381,6 +381,24 @@ public class GraphView extends SurfaceView implements Callback, OnTouchListener
 			//mPaint.setARGB(255, 0, 0, 255);
 			//c.drawRect(mCircleX, mCircleY, mCircle1X, mCircle1Y, mPaint);
 			
+			Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+			paint.setColor(Color.WHITE);
+			//paint.setShader(new LinearGradient(0, mCanvasHeight - mMarginBottom, 0, 0, Color.TRANSPARENT, Color.BLUE, Shader.TileMode.CLAMP));
+			//Path path = new Path();
+			//path.moveTo(mCircleX, mCircleY);
+			//path.lineTo(mCircle1X, mCircle1Y);
+			//c.drawPath(path, paint);
+			
+			if (mPointersDown)
+			{
+				c.drawLine(mCircleX, mCircleY, mCircle1X, mCircle1Y, paint);
+				c.drawLine(mCircleX, mCircleY, mCircle2X, mCircle2Y, paint);
+				c.drawLine(mCircleX, mCircleY, mCircle3X, mCircle3Y, paint);
+				c.drawLine(mCircle1X, mCircle1Y, mCircle2X, mCircle2Y, paint);
+				c.drawLine(mCircle1X, mCircle1Y, mCircle3X, mCircle3Y, paint);
+				c.drawLine(mCircle2X, mCircle2Y, mCircle3X, mCircle3Y, paint);
+			}
+			
 			//All the circles
 			Paint mLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
 			mLinePaint.setShader(new RadialGradient(mCircleX, mCircleY, 40, Color.argb(255, 255, 0, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP));
@@ -406,23 +424,6 @@ public class GraphView extends SurfaceView implements Callback, OnTouchListener
 			mLinePaint3.setARGB(255, 0, 255, 255);
 			c.drawCircle(mCircle3X, mCircle3Y, 40, mLinePaint3);
 			
-			Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-			paint.setColor(Color.WHITE);
-			//paint.setShader(new LinearGradient(0, mCanvasHeight - mMarginBottom, 0, 0, Color.TRANSPARENT, Color.BLUE, Shader.TileMode.CLAMP));
-			//Path path = new Path();
-			//path.moveTo(mCircleX, mCircleY);
-			//path.lineTo(mCircle1X, mCircle1Y);
-			//c.drawPath(path, paint);
-			
-			if (mPointersDown)
-			{
-				c.drawLine(mCircleX, mCircleY, mCircle1X, mCircle1Y, paint);
-				c.drawLine(mCircleX, mCircleY, mCircle2X, mCircle2Y, paint);
-				c.drawLine(mCircleX, mCircleY, mCircle3X, mCircle3Y, paint);
-				c.drawLine(mCircle1X, mCircle1Y, mCircle2X, mCircle2Y, paint);
-				c.drawLine(mCircle1X, mCircle1Y, mCircle3X, mCircle3Y, paint);
-				c.drawLine(mCircle2X, mCircle2Y, mCircle3X, mCircle3Y, paint);
-			}
 		}
 
 		/** Callback invoked when the surface dimensions change. */
