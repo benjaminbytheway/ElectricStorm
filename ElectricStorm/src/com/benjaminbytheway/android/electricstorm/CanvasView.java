@@ -3,6 +3,11 @@
  */
 package com.benjaminbytheway.android.electricstorm;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -68,15 +73,19 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 		// *******************************************************
 		// This is a test
 		// *******************************************************
-		/** X position for the circle */
-		private Float mCircleX = 50f;
-
-		/** Y position for the circle */
-		private Float mCircleY = 50f;
+		
 
 		/** flag for checking if the circle has changed */
 		private boolean mCircleChanged = false;
 
+		/** List of circles */
+		private List<Circle> mCircles = new ArrayList<Circle>();
+		
+		/*
+		private Float mCircleX = 50f;
+
+		private Float mCircleY = 50f;
+		
 		private Float mCircle1X = 50f;
 
 		private Float mCircle1Y = 50f;
@@ -88,8 +97,6 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 		private Float mCircle3X = 50f;
 
 		private Float mCircle3Y = 50f;
-		
-		//other stuff
 		
 		private Float mCircleVelX = 0f;
 		
@@ -107,8 +114,6 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 
 		private Float mCircle3VelY = 0f;
 		
-		//acceleration
-		
 		private Float mCircleAccX = 0f;
 		
 		private Float mCircleAccY = 0f;
@@ -124,12 +129,7 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 		private Float mCircle3AccX = 0f;
 
 		private Float mCircle3AccY = 0f;
-
-		//canvas dimentions
-		
-		private int canvasHeight;
-
-		private int canvasWidth;
+		*/
 
 		public GraphThread(SurfaceHolder surfaceHolder, Context context,
 				Handler handler)
@@ -153,14 +153,14 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 				Canvas c = null;
 				try
 				{
-					if (mCircleChanged || circlesMoving())
+					synchronized (mSurfaceHolder)
 					{
-						synchronized (mSurfaceHolder)
+						//if (mCircleChanged || circlesMoving())
 						{
 							c = mSurfaceHolder.lockCanvas(null);
 							
-							canvasHeight = c.getHeight();
-							canvasWidth = c.getWidth();
+							mCanvasHeight = c.getHeight();
+							mCanvasWidth = c.getWidth();
 							calculate();
 							doDraw(c);
 							mCircleChanged = false;
@@ -182,190 +182,81 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 		
 		private boolean circlesMoving()
 		{
-			if ((mCircleVelX != 0 ||	mCircleVelY != 0) || 
-				(mCircle1VelX != 0 ||	mCircle1VelY != 0) || 
-				(mCircle2VelX != 0 ||	mCircle2VelY != 0) || 
-				(mCircle3VelX != 0 ||	mCircle3VelY != 0))
+			for (Circle circle : mCircles)
 			{
-				return true;
+				if (circle.getxVelocity() != 0 || circle.getyVelocity() != 0)
+				{
+					return true;
+				}
 			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		private Float decrementVelocity(Float velocity, Float acceleration)
-		{
-			if ((velocity > 1) || (velocity < -1))
-			{
-				velocity -= acceleration;
-			}
-			else
-			{
-				velocity = 0f;
-			}
-			
-			return velocity;
-		}
-		
-		private void determineXBounds(Float position, Float velocity, Float acceleration)
-		{
-			if ((position < 0 || position > canvasWidth) && velocity != 0)
-			{
-				velocity = -velocity;
-				acceleration = -acceleration;
-			}
-		}
-		
-		private void determineYBounds(Float position, Float velocity, Float acceleration)
-		{
-			if ((position < 0 || position > canvasHeight) && velocity != 0)
-			{
-				velocity = -velocity;
-				acceleration = -acceleration;
-			}
+
+			// if we get to this point, we know that there isn't anything 
+			// that is moving because it hasn't returned yet
+			return false;
 		}
 		
 		private void calculate()
 		{
-			mCircleVelX = decrementVelocity(mCircleVelX, mCircleAccX);
-			mCircleVelY = decrementVelocity(mCircleVelY, mCircleAccY); 
-			mCircle1VelX = decrementVelocity(mCircle1VelX, mCircle1AccX);
-			mCircle1VelY = decrementVelocity(mCircle1VelY, mCircle1AccY);
-			mCircle2VelX = decrementVelocity(mCircle2VelX, mCircle2AccX);
-			mCircle2VelY = decrementVelocity(mCircle2VelY, mCircle2AccY);
-			mCircle3VelX = decrementVelocity(mCircle3VelX, mCircle3AccX);
-			mCircle3VelY = decrementVelocity(mCircle3VelY, mCircle3AccY);
-			
-			mCircleX += mCircleVelX;
-			mCircleY += mCircleVelY;
-			mCircle1X += mCircle1VelX;
-			mCircle1Y += mCircle1VelY;
-			mCircle2X += mCircle2VelX;
-			mCircle2Y += mCircle2VelY;
-			mCircle3X += mCircle3VelX;
-			mCircle3Y += mCircle3VelY;
-			
-			if ((mCircleX < 0 || mCircleX > canvasWidth) && mCircleVelX != 0)
+			for (Circle circle : mCircles)
 			{
-				if (mCircleX < 0)
+				// we make the calculations for the velocity
+				// calculate x velocity
+				if ((circle.getxVelocity() > 1) || (circle.getxVelocity() < -1))
 				{
-					mCircleX = 0f;
+					circle.setxVelocity(circle.getxVelocity() - circle.getxAcceleration());
 				}
 				else
 				{
-					mCircleX = (float) canvasWidth;
+					circle.setxVelocity(0f);
 				}
-				mCircleVelX = -mCircleVelX;
-				mCircleAccX = -mCircleAccX;
-			}
-			//determineXBounds(mCircleX, mCircleVelX, mCircleAccX);
-			
-			if ((mCircleY < 0 || mCircleY > canvasHeight) && mCircleVelY != 0)
-			{
-				if (mCircleY < 0)
+				
+				// calculate y velocity
+				if ((circle.getyVelocity() > 1) || (circle.getyVelocity() < -1))
 				{
-					mCircleY = 0f;
+					circle.setyVelocity(circle.getyVelocity() - circle.getyAcceleration());
 				}
 				else
 				{
-					mCircleY = (float) canvasHeight;
+					circle.setyVelocity(0f);
 				}
-				mCircleVelY = -mCircleVelY;
-				mCircleAccY = -mCircleAccY;
+				
+				// then we make the calculations on the position
+				circle.setX(circle.getX() + circle.getxVelocity());
+				circle.setY(circle.getY() + circle.getyVelocity());
+				
+				// then we determine if the object is outside of the canvas area
+				// calculate the x position
+				if ((circle.getX() < 0 || circle.getX() > mCanvasWidth) && circle.getxVelocity() != 0)
+				{
+					if (circle.getX() < 0)
+					{
+						circle.setX(0f);
+					}
+					else
+					{
+						circle.setX((float) mCanvasWidth);
+					}
+					
+					circle.setxVelocity(-circle.getxVelocity());
+					circle.setxAcceleration(-circle.getxAcceleration());
+				}
+				
+				// calculate the y position
+				if ((circle.getY() < 0 || circle.getY() > mCanvasHeight) && circle.getyVelocity() != 0)
+				{
+					if (circle.getY() < 0)
+					{
+						circle.setY(0f);
+					}
+					else
+					{
+						circle.setY((float) mCanvasHeight);
+					}
+					
+					circle.setyVelocity(-circle.getyVelocity());
+					circle.setyAcceleration(-circle.getyAcceleration());
+				}
 			}
-			//determineYBounds(mCircleY, mCircleVelY, mCircleAccY);
-			
-			if ((mCircle1X < 0 || mCircle1X > canvasWidth) && mCircle1VelX != 0)
-			{
-				if (mCircle1X < 0)
-				{
-					mCircle1X = 0f;
-				}
-				else
-				{
-					mCircle1X = (float) canvasWidth;
-				}
-				mCircle1VelX = -mCircle1VelX;
-				mCircle1AccX = -mCircle1AccX;
-			}
-			//determineXBounds(mCircle1X, mCircle1VelX, mCircle1AccX);
-			
-			if ((mCircle1Y < 0 || mCircle1Y > canvasHeight) && mCircle1VelY != 0)
-			{
-				if (mCircle1Y < 0)
-				{
-					mCircle1Y = 0f;
-				}
-				else
-				{
-					mCircle1Y = (float) canvasHeight;
-				}
-				mCircle1VelY = -mCircle1VelY;
-				mCircle1AccY = -mCircle1AccY;
-			}
-			//determineYBounds(mCircle1Y, mCircle1VelY, mCircle1AccY);
-			
-			if ((mCircle2X < 0 || mCircle2X > canvasWidth) && mCircle2VelX != 0)
-			{
-				if (mCircle2X < 0)
-				{
-					mCircle2X = 0f;
-				}
-				else
-				{
-					mCircle2X = (float) canvasWidth;
-				}
-				mCircle2VelX = -mCircle2VelX;
-				mCircle2AccX = -mCircle2AccX;
-			}
-			//determineXBounds(mCircle2X, mCircle2VelX, mCircle2AccX);
-			
-			if ((mCircle2Y < 0 || mCircle2Y > canvasHeight) && mCircle2VelY != 0)
-			{
-				if (mCircle2Y < 0)
-				{
-					mCircle2Y = 0f;
-				}
-				else
-				{
-					mCircle2Y = (float) canvasHeight;
-				}
-				mCircle2VelY = -mCircle2VelY;
-				mCircle2AccY = -mCircle2AccY;
-			}
-			//determineYBounds(mCircle2Y, mCircle2VelY, mCircle2AccY);
-			
-			if ((mCircle3X < 0 || mCircle3X > canvasWidth) && mCircle3VelX != 0)
-			{
-				if (mCircle3X < 0)
-				{
-					mCircle3X = 0f;
-				}
-				else
-				{
-					mCircle3X = (float) canvasWidth;
-				}
-				mCircle3VelX = -mCircle3VelX;
-				mCircle3AccX = -mCircle3AccX;
-			}
-			//determineXBounds(mCircle3X, mCircle3VelX, mCircle3AccX);
-			
-			if ((mCircle3Y < 0 || mCircle3Y > canvasHeight) && mCircle3VelY != 0)
-			{
-				if (mCircle3Y < 0)
-				{
-					mCircle3Y = 0f;
-				}
-				else
-				{
-					mCircle3Y = (float) canvasHeight;
-				}
-				mCircle3VelY = -mCircle3VelY;
-				mCircle3AccY = -mCircle3AccY;
-			}
-			//determineYBounds(mCircle3Y, mCircle3VelY, mCircle3AccY);
 		}
 
 		private void doDraw(Canvas c)
@@ -389,41 +280,72 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 			//path.lineTo(mCircle1X, mCircle1Y);
 			//c.drawPath(path, paint);
 			
-			if (mPointersDown)
+			List<CirclePair> alreadyDone = new ArrayList<CirclePair>();
+			
+			// Draw the circles
+			for (Circle circle : mCircles)
 			{
-				c.drawLine(mCircleX, mCircleY, mCircle1X, mCircle1Y, paint);
-				c.drawLine(mCircleX, mCircleY, mCircle2X, mCircle2Y, paint);
-				c.drawLine(mCircleX, mCircleY, mCircle3X, mCircle3Y, paint);
-				c.drawLine(mCircle1X, mCircle1Y, mCircle2X, mCircle2Y, paint);
-				c.drawLine(mCircle1X, mCircle1Y, mCircle3X, mCircle3Y, paint);
-				c.drawLine(mCircle2X, mCircle2Y, mCircle3X, mCircle3Y, paint);
+				for (Circle nearbyCircle : mCircles)
+				{
+					// We know the order of the CirclePair matters (nearbyCircle first and circle later)
+					// because that is the only way it would have been created.
+					CirclePair pair = new CirclePair(nearbyCircle, circle);
+					
+					// Check to see if we have already done this circle, and if so, we skip the rest of the calculations
+					if (alreadyDone.contains(pair))
+					{
+						continue;
+					}
+					
+					CirclePair circlePair = new CirclePair(circle, nearbyCircle);
+					alreadyDone.add(circlePair);
+					
+					double distance = circlePair.getDistance();
+					
+					// if we get a distance that is greater than a certain amount, we draw the electric
+					// storm circles 
+					if (distance < 150)
+					{
+						float xPosition = circlePair.getLowX();
+						float yPosition = circlePair.getLowY();
+						float xNewPosition = 0;
+						float yNewPosition = 0;
+						//draw the series of lines that will get us the electric effect.
+						while (xPosition < circlePair.getHighX() && yPosition < circlePair.getHighY())
+						{
+							double xDistance = (Math.random() * 15) + 2;
+							double yDistance = (Math.random() * 15) + 2;
+							
+							xNewPosition = (float) (xPosition + xDistance);
+							yNewPosition = (float) (yPosition + yDistance);
+							
+							if (xNewPosition > circlePair.getHighX())
+							{
+								xNewPosition = circlePair.getHighX();
+							}
+							if (yNewPosition > circlePair.getHighY())
+							{
+								yNewPosition = circlePair.getHighY();
+							}
+							
+							c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
+							
+							xPosition = xNewPosition;
+							yPosition = yNewPosition;
+						}
+					}
+				}
 			}
 			
-			//All the circles
-			Paint mLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-			mLinePaint.setShader(new RadialGradient(mCircleX, mCircleY, 40, Color.argb(255, 255, 0, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP));
-			mLinePaint.setAntiAlias(true);
-			mLinePaint.setARGB(255, 255, 0, 255);
-			c.drawCircle(mCircleX, mCircleY, 40, mLinePaint);
-			
-			Paint mLinePaint1 = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-			mLinePaint1.setShader(new RadialGradient(mCircle1X, mCircle1Y, 40, Color.argb(255, 0, 255, 0), Color.TRANSPARENT, Shader.TileMode.CLAMP));
-			mLinePaint1.setAntiAlias(true);
-			mLinePaint1.setARGB(255, 0, 255, 0);
-			c.drawCircle(mCircle1X, mCircle1Y, 40, mLinePaint1);
-			
-			Paint mLinePaint2 = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-			mLinePaint2.setShader(new RadialGradient(mCircle2X, mCircle2Y, 40, Color.argb(255, 255, 0, 0), Color.TRANSPARENT, Shader.TileMode.CLAMP));
-			mLinePaint2.setAntiAlias(true);
-			mLinePaint2.setARGB(255, 255, 0, 0);
-			c.drawCircle(mCircle2X, mCircle2Y, 40, mLinePaint2);
-			
-			Paint mLinePaint3 = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-			mLinePaint3.setShader(new RadialGradient(mCircle3X, mCircle3Y, 40, Color.argb(255, 0, 255, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP));
-			mLinePaint3.setAntiAlias(true);
-			mLinePaint3.setARGB(255, 0, 255, 255);
-			c.drawCircle(mCircle3X, mCircle3Y, 40, mLinePaint3);
-			
+			// Draw the circles
+			for (Circle circle : mCircles)
+			{
+				Paint mLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+				mLinePaint.setShader(new RadialGradient(circle.getX(), circle.getY(), 40, Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP));
+				mLinePaint.setAntiAlias(true);
+				mLinePaint.setColor(Color.WHITE);
+				c.drawCircle(circle.getX(), circle.getY(), 40, mLinePaint);
+			}
 		}
 
 		/** Callback invoked when the surface dimensions change. */
@@ -444,104 +366,75 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 		
 		Float accelerationCoeffiecient = 80f;
 		
-		public void setCircleVelocity(Float x, Float y)
+		public void setCircleVelocity(int index, float x, float y)
 		{
 			synchronized (mSurfaceHolder)
 			{
 				mCircleChanged = true;
 				
-				mCircleVelX = x;
-				mCircleVelY = y;
-				mCircleAccX = x/accelerationCoeffiecient;
-				mCircleAccY = y/accelerationCoeffiecient;
+				if (mCircles.size() == 0 || index >= mCircles.size() || mCircles.get(index) == null)
+				{
+					Circle circle = new Circle();
+					circle.setxVelocity(x);
+					circle.setyVelocity(y);
+					circle.setxAcceleration(x/accelerationCoeffiecient);
+					circle.setyAcceleration(y/accelerationCoeffiecient);
+					if (index >= mCircles.size())
+					{
+						for (int i=mCircles.size(); i<=index; i++)
+						{
+							mCircles.add(i, new Circle());
+						}
+					}
+					mCircles.set(index, circle);
+				}
+				else
+				{
+					Circle circle = mCircles.get(index);
+					circle.setxVelocity(x);
+					circle.setyVelocity(y);
+					circle.setxAcceleration(x/accelerationCoeffiecient);
+					circle.setyAcceleration(y/accelerationCoeffiecient);
+				}
 			}
 		}
 		
-		public void setCircle1Velocity(Float x, Float y)
-		{
-			synchronized (mSurfaceHolder)
-			{
-				mCircleChanged = true;
-				
-				mCircle1VelX = x;
-				mCircle1VelY = y;
-				mCircle1AccX = x/accelerationCoeffiecient;
-				mCircle1AccY = y/accelerationCoeffiecient;
-			}
-		}
-		
-		public void setCircle2Velocity(Float x, Float y)
-		{
-			synchronized (mSurfaceHolder)
-			{
-				mCircleChanged = true;
-				
-				mCircle2VelX = x;
-				mCircle2VelY = y;
-				mCircle2AccX = x/accelerationCoeffiecient;
-				mCircle2AccY = y/accelerationCoeffiecient;
-			}
-		}
-		
-		public void setCircle3Velocity(Float x, Float y)
-		{
-			synchronized (mSurfaceHolder)
-			{
-				mCircleChanged = true;
-				
-				mCircle3VelX = x;
-				mCircle3VelY = y;
-				mCircle3AccX = x/accelerationCoeffiecient;
-				mCircle3AccY = y/accelerationCoeffiecient;
-			}
-		}
-		
-		public void setCirclePosition(Float x, Float y)
+		public void setCirclePosition(int index, float x, float y)
 		{
 			// synchronized to make sure these all change atomically
 			synchronized (mSurfaceHolder)
 			{
 				mCircleChanged = true;
 				
-				mCircleX = x;
-				mCircleY = y;
+				if (mCircles.size() == 0 || index >= mCircles.size() || mCircles.get(index) == null)
+				{
+					Circle circle = new Circle();
+					circle.setX(x);
+					circle.setY(y);
+					if (index >= mCircles.size())
+					{
+						for (int i=mCircles.size(); i<=index; i++)
+						{
+							mCircles.add(i, new Circle());
+						}
+					}
+					mCircles.set(index, circle);
+				}
+				else
+				{
+					Circle circle = mCircles.get(index);
+					circle.setX(x);
+					circle.setY(y);
+				}
 			}
 		}
 
-		public void setCircle1Position(Float x, Float y)
+		/**
+		 * Clears all of the circles
+		 */
+		public void clearPointers() 
 		{
-			// synchronized to make sure these all change atomically
-			synchronized (mSurfaceHolder)
-			{
-				mCircleChanged = true;
-				
-				mCircle1X = x;
-				mCircle1Y = y;
-			}
-		}
-		
-		public void setCircle2Position(Float x, Float y)
-		{
-			// synchronized to make sure these all change atomically
-			synchronized (mSurfaceHolder)
-			{
-				mCircleChanged = true;
-				
-				mCircle2X = x;
-				mCircle2Y = y;
-			}
-		}
-		
-		public void setCircle3Position(Float x, Float y)
-		{
-			// synchronized to make sure these all change atomically
-			synchronized (mSurfaceHolder)
-			{
-				mCircleChanged = true;
-				
-				mCircle3X = x;
-				mCircle3Y = y;
-			}
+			mCircles = new ArrayList<Circle>();
 		}
 
 	}
@@ -692,6 +585,10 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 			{
 				return "ACTION_UP";
 			}
+			case (MotionEvent.ACTION_POINTER_DOWN):
+			{
+				return "ACTION_POINTER_DOWN";
+			}
 			default:
 				return action + "";
 		}
@@ -703,6 +600,7 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 		//final int pointerCount = event.getPointerCount();
 		//Log.d(LOG_TAG, "HISTORY SIZE:"+historySize+":");
 		
+		/*
 		for (int h = 0; h < event.getHistorySize(); h++)
 		{
 			//System.out.printf(" History - At time %d:", event.getHistoricalEventTime(h));
@@ -713,10 +611,12 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 				//Log.d(LOG_TAG, "  H-pointer "+event.getPointerId(p)+": ("+event.getHistoricalX(p, h)+","+event.getHistoricalY(p, h)+")");
 			}
 		}
+		*/
 		if (event.getAction() != 2)
 		{
 			Log.d(LOG_TAG, getActionName(event.getAction() & MotionEvent.ACTION_MASK) + "");
 		}
+		
 		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) 
 		{
@@ -724,6 +624,9 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 			{
 				velocityTracker.clear();
 				velocityTracker.addMovement(event);
+				
+				mThread.clearPointers();
+				
 				break;
 			}
 			case (MotionEvent.ACTION_MOVE): 
@@ -741,26 +644,11 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 				velocityTracker.addMovement(event);
 				velocityTracker.computeCurrentVelocity(velocityConstant);
 				
-				Log.d(LOG_TAG, pointerIndex + "");
-				Log.d(LOG_TAG, event.getPointerId(pointerIndex) + "");
+				//Log.d(LOG_TAG, pointerIndex + "");
+				//Log.d(LOG_TAG, event.getPointerId(pointerIndex) + "");
 				
-				switch (event.getPointerId(pointerIndex))
-				{
-					case 0:
-						mThread.setCircleVelocity(velocityTracker.getXVelocity(0), velocityTracker.getYVelocity(0));
-						break;
-					case 1:
-						mThread.setCircle1Velocity(velocityTracker.getXVelocity(1), velocityTracker.getYVelocity(1));
-						break;
-					case 2:
-						mThread.setCircle2Velocity(velocityTracker.getXVelocity(2), velocityTracker.getYVelocity(2));
-						break;
-					case 3:
-						mThread.setCircle3Velocity(velocityTracker.getXVelocity(3), velocityTracker.getYVelocity(3));
-						break;
-					default:
-						break;
-				}
+				int id = event.getPointerId(pointerIndex);
+				mThread.setCircleVelocity(id, velocityTracker.getXVelocity(id), velocityTracker.getYVelocity(id));
 				
 				break;
 			}
@@ -775,27 +663,11 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 				velocityTracker.addMovement(event);
 				velocityTracker.computeCurrentVelocity(velocityConstant);
 				
-				Log.d(LOG_TAG, pointerIndex + "");
-				Log.d(LOG_TAG, event.getPointerId(pointerIndex) + "");
+				//Log.d(LOG_TAG, pointerIndex + "");
+				//Log.d(LOG_TAG, event.getPointerId(pointerIndex) + "");
 				
-				switch (event.getPointerId(pointerIndex))
-				{
-					case 0:
-						mThread.setCircleVelocity(velocityTracker.getXVelocity(0), velocityTracker.getYVelocity(0));
-						break;
-					case 1:
-						mThread.setCircle1Velocity(velocityTracker.getXVelocity(1), velocityTracker.getYVelocity(1));
-						break;
-					case 2:
-						mThread.setCircle2Velocity(velocityTracker.getXVelocity(2), velocityTracker.getYVelocity(2));
-						break;
-					case 3:
-						mThread.setCircle3Velocity(velocityTracker.getXVelocity(3), velocityTracker.getYVelocity(3));
-						break;
-					default:
-						break;
-				}
-				
+				int id = event.getPointerId(pointerIndex);
+				mThread.setCircleVelocity(id, velocityTracker.getXVelocity(id), velocityTracker.getYVelocity(id));
 				
 				break;
 			}
@@ -809,29 +681,7 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 			//Log.d(LOG_TAG, "  pointer "+event.getPointerId(p)+": ("+event.getX(p)+","+event.getY(p)+")");
 			int pointerId = event.getPointerId(p);
 			
-			switch(pointerId)
-			{
-				case 0:
-					mThread.setCirclePosition(event.getX(p), event.getY(p));
-					break;
-				case 1:
-					mThread.setCircle1Position(event.getX(p), event.getY(p));
-					break;
-				case 2:
-					mThread.setCircle2Position(event.getX(p), event.getY(p));
-					break;
-				case 3:
-					mThread.setCircle3Position(event.getX(p), event.getY(p));
-					break;
-				case 4:
-					//mThread.setCircle1Position(event.getX(p), event.getY(p));
-					break;
-				case 5:
-					//mThread.setCircle1Position(event.getX(p), event.getY(p));
-					break;
-				default:
-					break;
-			}
+			mThread.setCirclePosition(pointerId, event.getX(p), event.getY(p));
 		}
 		
 		return true;

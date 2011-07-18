@@ -5,7 +5,7 @@
     android:layout_height="fill_parent"
     >
 
-	<com.benjaminbytheway.android.electricstorm.GraphView 
+	<com.benjaminbytheway.android.electricstorm.CanvasView 
 		android:id="@+id/graph_view"
 		android:layout_width="match_parent" android:layout_height="match_parent" />	
 	
