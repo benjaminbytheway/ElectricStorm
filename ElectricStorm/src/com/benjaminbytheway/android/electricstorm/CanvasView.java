@@ -29,7 +29,7 @@ import android.view.View.OnTouchListener;
  * @author benjaminbytheway
  * 
  */
-public class GraphView extends SurfaceView implements Callback, OnTouchListener
+public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 {;
 	/** Log Tag for GraphView */
 	private static final String LOG_TAG = "GraphView";
@@ -551,7 +551,7 @@ public class GraphView extends SurfaceView implements Callback, OnTouchListener
 	/**
 	 * @param context
 	 */
-	public GraphView(Context context)
+	public CanvasView(Context context)
 	{
 		super(context);
 		this.setOnTouchListener(this);
@@ -575,7 +575,7 @@ public class GraphView extends SurfaceView implements Callback, OnTouchListener
 	 * @param context
 	 * @param attrs
 	 */
-	public GraphView(Context context, AttributeSet attrs)
+	public CanvasView(Context context, AttributeSet attrs)
 	{
 		super(context, attrs);
 		this.setOnTouchListener(this);
@@ -600,7 +600,7 @@ public class GraphView extends SurfaceView implements Callback, OnTouchListener
 	 * @param attrs
 	 * @param defStyle
 	 */
-	public GraphView(Context context, AttributeSet attrs, int defStyle)
+	public CanvasView(Context context, AttributeSet attrs, int defStyle)
 	{
 		super(context, attrs, defStyle);
 		this.setOnTouchListener(this);
