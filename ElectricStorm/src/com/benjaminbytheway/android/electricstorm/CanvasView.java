@@ -258,6 +258,8 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 				}
 			}
 		}
+		
+		private int count = 0;
 
 		private void doDraw(Canvas c)
 		{
@@ -272,8 +274,8 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 			//mPaint.setARGB(255, 0, 0, 255);
 			//c.drawRect(mCircleX, mCircleY, mCircle1X, mCircle1Y, mPaint);
 			
-			Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-			paint.setColor(Color.WHITE);
+			//Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+			//paint.setColor(Color.WHITE);
 			//paint.setShader(new LinearGradient(0, mCanvasHeight - mMarginBottom, 0, 0, Color.TRANSPARENT, Color.BLUE, Shader.TileMode.CLAMP));
 			//Path path = new Path();
 			//path.moveTo(mCircleX, mCircleY);
@@ -281,6 +283,8 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 			//c.drawPath(path, paint);
 			
 			//List<CirclePair> alreadyDone = new ArrayList<CirclePair>();
+			
+			count++;
 			
 			// Draw the electric lines
 			for (Circle circle : mCircles)
@@ -309,10 +313,17 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 					
 					double distance = circlePair.getDistance();
 					
+					//for (int i=0; i<99999; i++)
+					//{
+					//	Log.d(LOG_TAG, "");
+					//}
+					
 					// if we get a distance that is greater than a certain amount, we draw the electric
 					// storm circles 
-					if (distance < 250)
+					if (distance < 250)// && count > 5)
 					{
+						
+						//count = 0;
 						//Log.d(LOG_TAG, "ZAP!!!!! " + distance);
 						
 						float xRandomMax = Math.abs(circlePair.getCircle1().getX() - circlePair.getCircle2().getX()) / 8;
@@ -335,16 +346,27 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 							float yPosition = circlePair.getCircle1().getY();
 							float xNewPosition = 0;
 							float yNewPosition = 0;
+							float xGradientPosition = 0;
+							float yGradientPosition = 0;
+							double xChange = 0;
+							double yChange = 0;
+							Paint paint = null;
 							
 							//draw the series of lines that will get us the electric effect.
 							while ((xPosition < circlePair.getCircle2().getX()) &&
 									(yPosition < circlePair.getCircle2().getY()))
 							{
-								double xDistance = (Math.random() * xRandomMax) + 1;
-								double yDistance = (Math.random() * yRandomMax) + 1;
+								double xDistance = (Math.random() * xRandomMax);
+								double yDistance = (Math.random() * yRandomMax);
 								
 								xNewPosition = (float) (xPosition + xDistance);
 								yNewPosition = (float) (yPosition + yDistance);
+								
+								//xChange = Math.sqrt(81/(1 + yDistance/xDistance));
+								//yChange = Math.sqrt(81/(1 + xDistance/yDistance));
+								
+								//xGradientPosition = (float) (xPosition + yChange);
+								//yGradientPosition = (float) (yPosition - xChange);
 								
 								if ((Math.abs(xNewPosition - circlePair.getCircle2().getX()) <= xRandomMax) &&
 									(Math.abs(yNewPosition - circlePair.getCircle2().getY()) <= yRandomMax))
@@ -352,6 +374,12 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 									xNewPosition = circlePair.getCircle2().getX();
 									yNewPosition = circlePair.getCircle2().getY();
 								}
+								
+								paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+								paint.setStrokeWidth(1);
+								paint.setStyle(Paint.Style.FILL_AND_STROKE);
+								paint.setColor(Color.WHITE);
+								//paint.setShader(new LinearGradient(xPosition, yPosition, xGradientPosition, yGradientPosition, Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP));
 								
 								c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
 								
@@ -376,16 +404,22 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 							float yPosition = circlePair.getCircle1().getY();
 							float xNewPosition = 0;
 							float yNewPosition = 0;
+							float xGradientPosition = 0;
+							float yGradientPosition = 0;
+							Paint paint = null;
 							
 							//draw the series of lines that will get us the electric effect.
 							while ((xPosition > circlePair.getCircle2().getX()) &&
 									(yPosition > circlePair.getCircle2().getY()))
 							{
-								double xDistance = (Math.random() * xRandomMax) + 1;
-								double yDistance = (Math.random() * yRandomMax) + 1;
+								double xDistance = (Math.random() * xRandomMax);
+								double yDistance = (Math.random() * yRandomMax);
 								
 								xNewPosition = (float) (xPosition - xDistance);
 								yNewPosition = (float) (yPosition - yDistance);
+								
+								//xGradientPosition = (float) (xPosition - Math.sqrt(16/(1 + yDistance/xDistance)));
+								//yGradientPosition = (float) (yPosition + Math.sqrt(16/(1 + xDistance/yDistance)));
 								
 								if ((Math.abs(xNewPosition - circlePair.getCircle2().getX()) <= xRandomMax) &&
 									(Math.abs(yNewPosition - circlePair.getCircle2().getY()) <= yRandomMax))
@@ -393,6 +427,12 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 									xNewPosition = circlePair.getCircle2().getX();
 									yNewPosition = circlePair.getCircle2().getY();
 								}
+								
+								paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+								paint.setStrokeWidth(1);
+								paint.setStyle(Paint.Style.FILL_AND_STROKE);
+								paint.setColor(Color.WHITE);
+								//paint.setShader(new LinearGradient(xPosition, yPosition, xGradientPosition, yGradientPosition, Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP));
 								
 								c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
 								
@@ -417,6 +457,9 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 							float yPosition = circlePair.getCircle1().getY();
 							float xNewPosition = 0;
 							float yNewPosition = 0;
+							float xGradientPosition = 0;
+							float yGradientPosition = 0;
+							Paint paint = null;
 							float paddingLeft = 5;
 							float paddingRight = 5;
 							
@@ -424,11 +467,14 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 							while ((xPosition < circlePair.getCircle2().getX()) &&
 									(yPosition > circlePair.getCircle2().getY()))
 							{
-								double xDistance = (Math.random() * xRandomMax) + 1;
-								double yDistance = (Math.random() * yRandomMax) + 1;
+								double xDistance = (Math.random() * xRandomMax);
+								double yDistance = (Math.random() * yRandomMax);
 								
 								xNewPosition = (float) (xPosition + xDistance);
 								yNewPosition = (float) (yPosition - yDistance);
+								
+								//xGradientPosition = (float) (xPosition + yDistance);
+								//yGradientPosition = (float) (yPosition - xDistance);
 								
 								if ((Math.abs(xNewPosition - circlePair.getCircle2().getX()) <= xRandomMax) &&
 									(Math.abs(yNewPosition - circlePair.getCircle2().getY()) <= yRandomMax))
@@ -436,6 +482,12 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 									xNewPosition = circlePair.getCircle2().getX();
 									yNewPosition = circlePair.getCircle2().getY();
 								}
+								
+								paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+								paint.setStrokeWidth(1);
+								paint.setStyle(Paint.Style.FILL_AND_STROKE);
+								paint.setColor(Color.WHITE);
+								//paint.setShader(new LinearGradient(xPosition, yPosition, xGradientPosition, yGradientPosition, Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP));
 								
 								c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
 								
@@ -460,16 +512,22 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 							float yPosition = circlePair.getCircle1().getY();
 							float xNewPosition = 0;
 							float yNewPosition = 0;
+							float xGradientPosition = 0;
+							float yGradientPosition = 0;
+							Paint paint = null;
 							
 							//draw the series of lines that will get us the electric effect.
 							while ((xPosition > circlePair.getCircle2().getX()) &&
 									(yPosition < circlePair.getCircle2().getY()))
 							{
-								double xDistance = (Math.random() * xRandomMax) + 1;
-								double yDistance = (Math.random() * yRandomMax) + 1;
+								double xDistance = (Math.random() * xRandomMax);
+								double yDistance = (Math.random() * yRandomMax);
 								
 								xNewPosition = (float) (xPosition - xDistance);
 								yNewPosition = (float) (yPosition + yDistance);
+								
+								//xGradientPosition = (float) (xPosition + yDistance);
+								//yGradientPosition = (float) (yPosition - xDistance);
 								
 								if ((Math.abs(xNewPosition - circlePair.getCircle2().getX()) <= xRandomMax) &&
 									(Math.abs(yNewPosition - circlePair.getCircle2().getY()) <= yRandomMax))
@@ -477,6 +535,12 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 									xNewPosition = circlePair.getCircle2().getX();
 									yNewPosition = circlePair.getCircle2().getY();
 								}
+								
+								paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+								paint.setStrokeWidth(1);
+								paint.setStyle(Paint.Style.FILL_AND_STROKE);
+								paint.setColor(Color.WHITE);
+								//paint.setShader(new LinearGradient(xPosition, yPosition, xGradientPosition, yGradientPosition, Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP));
 								
 								c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
 								
@@ -502,6 +566,46 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 				mLinePaint.setAntiAlias(true);
 				mLinePaint.setColor(Color.WHITE);
 				c.drawCircle(circle.getX(), circle.getY(), circle.getRadius(), mLinePaint);
+				
+				if (true)
+				{
+					float xPosition = circle.getX();
+					float yPosition = circle.getY();
+					float xNewPosition = 0;
+					float yNewPosition = 0;
+					float xGradientPosition = 0;
+					float yGradientPosition = 0;
+					Paint paint = null;
+					
+					int numTurns = 20;
+					
+					float xRandomMax = Math.abs(circle.getRadius()) / numTurns * 3;
+					float yRandomMax = Math.abs(circle.getRadius()) / numTurns * 3;
+					
+					//draw the series of lines that will get us the electric effect.
+					for (int i=0; i<numTurns; i++)
+					{
+						double xDistance = (Math.random() * xRandomMax) * 2 - xRandomMax;
+						double yDistance = (Math.random() * yRandomMax) * 2 - yRandomMax;
+						
+						xNewPosition = (float) (xPosition + xDistance);
+						yNewPosition = (float) (yPosition + yDistance);
+						
+						//xGradientPosition = (float) (xPosition + yDistance);
+						//yGradientPosition = (float) (yPosition - xDistance);
+						
+						paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+						paint.setStrokeWidth(1);
+						paint.setStyle(Paint.Style.FILL_AND_STROKE);
+						paint.setColor(Color.WHITE);
+						//paint.setShader(new LinearGradient(xPosition, yPosition, xGradientPosition, yGradientPosition, Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP));
+						
+						c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
+						
+						xPosition = xNewPosition;
+						yPosition = yNewPosition;
+					}
+				}
 			}
 		}
 
