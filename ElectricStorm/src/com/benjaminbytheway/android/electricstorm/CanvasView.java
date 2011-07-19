@@ -280,60 +280,217 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 			//path.lineTo(mCircle1X, mCircle1Y);
 			//c.drawPath(path, paint);
 			
-			List<CirclePair> alreadyDone = new ArrayList<CirclePair>();
+			//List<CirclePair> alreadyDone = new ArrayList<CirclePair>();
 			
-			// Draw the circles
+			// Draw the electric lines
 			for (Circle circle : mCircles)
 			{
 				for (Circle nearbyCircle : mCircles)
 				{
 					// We know the order of the CirclePair matters (nearbyCircle first and circle later)
 					// because that is the only way it would have been created.
-					CirclePair pair = new CirclePair(nearbyCircle, circle);
+					//CirclePair pair = new CirclePair(nearbyCircle, circle);
 					
 					// Check to see if we have already done this circle, and if so, we skip the rest of the calculations
-					if (alreadyDone.contains(pair))
+					//if (alreadyDone.contains(pair))
+					//{
+					//	Log.d(LOG_TAG, "Already done");
+					//	continue;
+					//}
+					
+					// Don't try to draw lines to yourself
+					if (circle == nearbyCircle)
 					{
 						continue;
 					}
 					
 					CirclePair circlePair = new CirclePair(circle, nearbyCircle);
-					alreadyDone.add(circlePair);
+					//alreadyDone.add(circlePair);
 					
 					double distance = circlePair.getDistance();
 					
 					// if we get a distance that is greater than a certain amount, we draw the electric
 					// storm circles 
-					if (distance < 150)
+					if (distance < 250)
 					{
-						float xPosition = circlePair.getLowX();
-						float yPosition = circlePair.getLowY();
-						float xNewPosition = 0;
-						float yNewPosition = 0;
-						//draw the series of lines that will get us the electric effect.
-						while (xPosition < circlePair.getHighX() && yPosition < circlePair.getHighY())
+						//Log.d(LOG_TAG, "ZAP!!!!! " + distance);
+						
+						float xRandomMax = Math.abs(circlePair.getCircle1().getX() - circlePair.getCircle2().getX()) / 8;
+						float yRandomMax = Math.abs(circlePair.getCircle1().getY() - circlePair.getCircle2().getY()) / 8;
+						
+						// Example:
+						//______________________
+						//| 1 (10, 10)         |
+						//| *                  |
+						//|                    |
+						//|         2 (50, 50) |
+						//|         *          |
+						//|____________________|
+						if ((circlePair.getCircle1().getX() < circlePair.getCircle2().getX()) &&
+							(circlePair.getCircle1().getY() < circlePair.getCircle2().getY()))
 						{
-							double xDistance = (Math.random() * 15) + 2;
-							double yDistance = (Math.random() * 15) + 2;
+							//Log.d(LOG_TAG, "1");
 							
-							xNewPosition = (float) (xPosition + xDistance);
-							yNewPosition = (float) (yPosition + yDistance);
+							float xPosition = circlePair.getCircle1().getX();
+							float yPosition = circlePair.getCircle1().getY();
+							float xNewPosition = 0;
+							float yNewPosition = 0;
 							
-							if (xNewPosition > circlePair.getHighX())
+							//draw the series of lines that will get us the electric effect.
+							while ((xPosition < circlePair.getCircle2().getX()) &&
+									(yPosition < circlePair.getCircle2().getY()))
 							{
-								xNewPosition = circlePair.getHighX();
+								double xDistance = (Math.random() * xRandomMax) + 1;
+								double yDistance = (Math.random() * yRandomMax) + 1;
+								
+								xNewPosition = (float) (xPosition + xDistance);
+								yNewPosition = (float) (yPosition + yDistance);
+								
+								if ((Math.abs(xNewPosition - circlePair.getCircle2().getX()) <= xRandomMax) &&
+									(Math.abs(yNewPosition - circlePair.getCircle2().getY()) <= yRandomMax))
+								{
+									xNewPosition = circlePair.getCircle2().getX();
+									yNewPosition = circlePair.getCircle2().getY();
+								}
+								
+								c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
+								
+								xPosition = xNewPosition;
+								yPosition = yNewPosition;
 							}
-							if (yNewPosition > circlePair.getHighY())
-							{
-								yNewPosition = circlePair.getHighY();
-							}
-							
-							c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
-							
-							xPosition = xNewPosition;
-							yPosition = yNewPosition;
 						}
+						// Example:
+						//______________________
+						//| 2 (10, 10)         |
+						//| *                  |
+						//|                    |
+						//|         1 (50, 50) |
+						//|         *          |
+						//|____________________|
+						else if ((circlePair.getCircle1().getX() > circlePair.getCircle2().getX()) &&
+								 (circlePair.getCircle1().getY() > circlePair.getCircle2().getY()))
+						{
+							//Log.d(LOG_TAG, "2");
+							
+							float xPosition = circlePair.getCircle1().getX();
+							float yPosition = circlePair.getCircle1().getY();
+							float xNewPosition = 0;
+							float yNewPosition = 0;
+							
+							//draw the series of lines that will get us the electric effect.
+							while ((xPosition > circlePair.getCircle2().getX()) &&
+									(yPosition > circlePair.getCircle2().getY()))
+							{
+								double xDistance = (Math.random() * xRandomMax) + 1;
+								double yDistance = (Math.random() * yRandomMax) + 1;
+								
+								xNewPosition = (float) (xPosition - xDistance);
+								yNewPosition = (float) (yPosition - yDistance);
+								
+								if ((Math.abs(xNewPosition - circlePair.getCircle2().getX()) <= xRandomMax) &&
+									(Math.abs(yNewPosition - circlePair.getCircle2().getY()) <= yRandomMax))
+								{
+									xNewPosition = circlePair.getCircle2().getX();
+									yNewPosition = circlePair.getCircle2().getY();
+								}
+								
+								c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
+								
+								xPosition = xNewPosition;
+								yPosition = yNewPosition;
+							}
+						}
+						// Example:
+						//______________________
+						//|         2 (50, 10) |
+						//|         *          |
+						//|                    |
+						//| 1 (10, 50)         |
+						//| *                  |
+						//|____________________|
+						else if ((circlePair.getCircle1().getX() < circlePair.getCircle2().getX()) &&
+								 (circlePair.getCircle1().getY() > circlePair.getCircle2().getY()))
+						{
+							//Log.d(LOG_TAG, "3");
+							
+							float xPosition = circlePair.getCircle1().getX();
+							float yPosition = circlePair.getCircle1().getY();
+							float xNewPosition = 0;
+							float yNewPosition = 0;
+							float paddingLeft = 5;
+							float paddingRight = 5;
+							
+							//draw the series of lines that will get us the electric effect.
+							while ((xPosition < circlePair.getCircle2().getX()) &&
+									(yPosition > circlePair.getCircle2().getY()))
+							{
+								double xDistance = (Math.random() * xRandomMax) + 1;
+								double yDistance = (Math.random() * yRandomMax) + 1;
+								
+								xNewPosition = (float) (xPosition + xDistance);
+								yNewPosition = (float) (yPosition - yDistance);
+								
+								if ((Math.abs(xNewPosition - circlePair.getCircle2().getX()) <= xRandomMax) &&
+									(Math.abs(yNewPosition - circlePair.getCircle2().getY()) <= yRandomMax))
+								{
+									xNewPosition = circlePair.getCircle2().getX();
+									yNewPosition = circlePair.getCircle2().getY();
+								}
+								
+								c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
+								
+								xPosition = xNewPosition;
+								yPosition = yNewPosition;
+							}
+						}
+						// Example:
+						//______________________
+						//|         1 (50, 10) |
+						//|         *          |
+						//|                    |
+						//| 2 (10, 50)         |
+						//| *                  |
+						//|____________________|
+						else if ((circlePair.getCircle1().getX() > circlePair.getCircle2().getX()) &&
+								 (circlePair.getCircle1().getY() < circlePair.getCircle2().getY()))
+						{
+							//Log.d(LOG_TAG, "4");
+							
+							float xPosition = circlePair.getCircle1().getX();
+							float yPosition = circlePair.getCircle1().getY();
+							float xNewPosition = 0;
+							float yNewPosition = 0;
+							
+							//draw the series of lines that will get us the electric effect.
+							while ((xPosition > circlePair.getCircle2().getX()) &&
+									(yPosition < circlePair.getCircle2().getY()))
+							{
+								double xDistance = (Math.random() * xRandomMax) + 1;
+								double yDistance = (Math.random() * yRandomMax) + 1;
+								
+								xNewPosition = (float) (xPosition - xDistance);
+								yNewPosition = (float) (yPosition + yDistance);
+								
+								if ((Math.abs(xNewPosition - circlePair.getCircle2().getX()) <= xRandomMax) &&
+									(Math.abs(yNewPosition - circlePair.getCircle2().getY()) <= yRandomMax))
+								{
+									xNewPosition = circlePair.getCircle2().getX();
+									yNewPosition = circlePair.getCircle2().getY();
+								}
+								
+								c.drawLine(xPosition, yPosition, xNewPosition, yNewPosition, paint);
+								
+								xPosition = xNewPosition;
+								yPosition = yNewPosition;
+							}
+						}
+						
 					}
+					else
+					{
+						//Log.d(LOG_TAG, "Too far: " + distance);
+					}
+					
 				}
 			}
 			
@@ -341,10 +498,10 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 			for (Circle circle : mCircles)
 			{
 				Paint mLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-				mLinePaint.setShader(new RadialGradient(circle.getX(), circle.getY(), 40, Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP));
+				mLinePaint.setShader(new RadialGradient(circle.getX(), circle.getY(), circle.getRadius(), Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP));
 				mLinePaint.setAntiAlias(true);
 				mLinePaint.setColor(Color.WHITE);
-				c.drawCircle(circle.getX(), circle.getY(), 40, mLinePaint);
+				c.drawCircle(circle.getX(), circle.getY(), circle.getRadius(), mLinePaint);
 			}
 		}
 
@@ -434,7 +591,43 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 		 */
 		public void clearPointers() 
 		{
-			mCircles = new ArrayList<Circle>();
+			// synchronized to make sure these all change atomically
+			synchronized (mSurfaceHolder) 
+			{
+				mCircles = new ArrayList<Circle>();
+			}
+		}
+
+		public void setCircleRadius(int index, float radius) {
+			// synchronized to make sure these all change atomically
+			synchronized (mSurfaceHolder)
+			{
+				if (radius < 5)
+				{
+					radius = 5;
+				}
+				
+				mCircleChanged = true;
+				
+				if (mCircles.size() == 0 || index >= mCircles.size() || mCircles.get(index) == null)
+				{
+					Circle circle = new Circle();
+					circle.setRadius(radius);
+					if (index >= mCircles.size())
+					{
+						for (int i=mCircles.size(); i<=index; i++)
+						{
+							mCircles.add(i, new Circle());
+						}
+					}
+					mCircles.set(index, circle);
+				}
+				else
+				{
+					Circle circle = mCircles.get(index);
+					circle.setRadius(radius);
+				}
+			}
 		}
 
 	}
@@ -682,6 +875,7 @@ public class CanvasView extends SurfaceView implements Callback, OnTouchListener
 			int pointerId = event.getPointerId(p);
 			
 			mThread.setCirclePosition(pointerId, event.getX(p), event.getY(p));
+			mThread.setCircleRadius(pointerId, event.getPressure(p) * 130 + 5);
 		}
 		
 		return true;
